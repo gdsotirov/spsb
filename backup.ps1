@@ -22,7 +22,6 @@ $mail_subj = "Backup report from $env:computername on $bkp_date"
 function ZipFile($zipfilename, $file)
 {
   Add-Type -assembly System.IO.Compression
-  Add-Type -Assembly System.IO.Compression.FileSystem
 
   [System.IO.Compression.ZipArchive]$ZipFile = [System.IO.Compression.ZipFile]::Open($zipfilename, ([System.IO.Compression.ZipArchiveMode]::Update))
   [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ZipFile, $file, (Split-Path $file -Leaf))
@@ -31,17 +30,16 @@ function ZipFile($zipfilename, $file)
 
 function ZipDir($zipfilename, $sourcedir)
 {
-  Add-Type -Assembly System.IO.Compression.FileSystem
+  Add-Type -Assembly System.IO.Compression
   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir, $zipfilename, $compressionLevel, $false)
 }
 
-echo "Backup path = $bkp_path"
-echo "Backup sources = $bkp_src1, $bkp_src2"
-
-New-PSDrive -Name "BKP" -PSProvider FileSystem -Root $bkp_path -Credential $bkp_cred
+$start_time = Get-Date
 
 # Do backup
+$(
+New-PSDrive -Name "BKP" -PSProvider FileSystem -Root $bkp_path -Credential $bkp_cred
 
 $host_path = "$bkp_path\$env:computername"
 if ( !(Test-Path "$host_path" -PathType Container) ) {
@@ -53,25 +51,64 @@ if ( !(Test-Path "$bkp_path_date" -PathType Container) ) {
   mkdir $bkp_path_date
 }
 
-ZipDir  "$bkp_path_date\Bkp1-$bkp_date.zip" $bkp_src1
-ZipFile "$bkp_path_date\Bkp2-$bkp_date.zip" $bkp_src2
+Write-Output "Backing up ${bkp_src1}... "
+try {
+  ZipDir  "$bkp_path_date\Bkp1-$bkp_date.zip" $bkp_src1
+  $res1 = 0
+}
+catch {
+  $res1 = 1
+  echo $_
+}
+Write-Output "Done ($res1)"
+Write-Output "Backing up ${bkp_src2}... "
+try {
+  ZipFile "$bkp_path_date\Bkp2-$bkp_date.zip" $bkp_src2
+  $res2 = 0
+}
+catch {
+  # TODO: Handle file in use error
+  $res2 = 1
+  echo $_
+}
+Write-Output "Done ($res2)"
 #copy-Item  -Recurse $bkp_src1 -Destination $bkp_path_date\$bkp_src1
 
-$mail_body = @"
+Remove-PSDrive "BKP"
+) 2>&1 | Out-File "$bkp_path_date\backup-${bkp_date}.log"
+
+$end_time = Get-Date
+$used_time = $end_time - $start_time
+
+if ($res1 -eq 0 -and $res2 -eq 0) {
+  $mail_subj = $mail_subj + " [OK]"
+  $mail_body = @"
 Hello Administrator,
 
-Backup of $env:computername on $bkp_date has completed successfully.
+Backup of $env:computername on $bkp_date has completed successfully in $($used_time.TotalSeconds) seconds.
 
 
 --
 Your backup script at $env:computername
-
 "@
+}
+else {
+  $mail_subj = $mail_subj + " [KO]"
+  $mail_body = @"
+Hello Administrator,
 
-send-MailMessage -SmtpServer $mail_host `
-                 -From       $mail_from `
-                 -To         $mail_to   `
-                 -Subject    $mail_subj `
-                 -Body       $mail_body
+Backup of $env:computername on $bkp_date has *failed* after $($used_time.TotalSeconds) seconds.
+See attachment for more details.
 
-Remove-PSDrive "BKP"
+
+--
+Your backup script at $env:computername
+"@
+}
+
+send-MailMessage -SmtpServer  $mail_host `
+                 -From        $mail_from `
+                 -To          $mail_to   `
+                 -Subject     $mail_subj `
+                 -Body        $mail_body `
+                 -Attachments "$bkp_path_date\backup-${bkp_date}.log"
