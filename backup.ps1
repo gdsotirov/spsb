@@ -3,6 +3,7 @@
 
 # Backup configuration
 $bkp_date = Get-Date -Format yyyy-MM-dd # for once a day
+$bkp_log_local = "$env:temp\$env:computername-backup-${bkp_date}.log"
 $bkp_src1 = "C:\A\Directory\To\Backup"
 $bkp_src2 = "D:\A\File\To\Backup.txt"
 
@@ -21,7 +22,8 @@ $mail_subj = "Backup report from $env:computername on $bkp_date"
 
 function ZipFile($zipfilename, $file)
 {
-  Add-Type -assembly System.IO.Compression
+  Add-Type -Assembly System.IO.Compression
+  Add-Type -Assembly System.IO.Compression.FileSystem
 
   [System.IO.Compression.ZipArchive]$ZipFile = [System.IO.Compression.ZipFile]::Open($zipfilename, ([System.IO.Compression.ZipArchiveMode]::Update))
   [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ZipFile, $file, (Split-Path $file -Leaf))
@@ -31,8 +33,28 @@ function ZipFile($zipfilename, $file)
 function ZipDir($zipfilename, $sourcedir)
 {
   Add-Type -Assembly System.IO.Compression
+  Add-Type -Assembly System.IO.Compression.FileSystem
+
   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir, $zipfilename, $compressionLevel, $false)
+}
+
+function LogEvent($Type, $Id, $Message) {
+  if ( ![System.Diagnostics.EventLog]::SourceExists("Simple Backup Script") ) {
+    New-EventLog   –LogName Application –Source “Simple Backup Script”
+  }
+
+  Write-EventLog –LogName Application –Source “Simple Backup Script” `
+                 –EntryType $Type –EventID $id `
+                 –Message $Message
+}
+
+function LogInfoEvent($Id, $Message) {
+  LogEvent "Information" $Id $Message
+}
+
+function LogErrEvent($Id, $Message) {
+  LogEvent "Error" $Id $Message
 }
 
 $start_time = Get-Date
@@ -74,41 +96,44 @@ catch {
 Write-Output "Done ($res2)"
 #copy-Item  -Recurse $bkp_src1 -Destination $bkp_path_date\$bkp_src1
 
+) 2>&1 | Out-File $bkp_log_local
+
+Copy-Item $bkp_log_local "$bkp_path_date\backup-$bkp_date.log"
+
 Remove-PSDrive "BKP"
-) 2>&1 | Out-File "$bkp_path_date\backup-${bkp_date}.log"
 
 $end_time = Get-Date
 $used_time = $end_time - $start_time
 
 if ($res1 -eq 0 -and $res2 -eq 0) {
   $mail_subj = $mail_subj + " [OK]"
-  $mail_body = @"
-Hello Administrator,
+  $mail_msg = "Backup of $env:computername on $bkp_date has completed successfully in $($used_time.TotalSeconds) seconds."
 
-Backup of $env:computername on $bkp_date has completed successfully in $($used_time.TotalSeconds) seconds.
-
-
---
-Your backup script at $env:computername
-"@
+  LogInfoEvent 999 $mail_msg
 }
 else {
   $mail_subj = $mail_subj + " [KO]"
+  $mail_msg = @"
+Backup of $env:computername on $bkp_date has *failed* after $($used_time.TotalSeconds) seconds.
+See attachment for more details.
+"@
+
+  LogErrEvent 888 $mail_msg
+}
+
   $mail_body = @"
 Hello Administrator,
 
-Backup of $env:computername on $bkp_date has *failed* after $($used_time.TotalSeconds) seconds.
-See attachment for more details.
+$mail_msg
 
 
 --
 Your backup script at $env:computername
 "@
-}
 
 send-MailMessage -SmtpServer  $mail_host `
                  -From        $mail_from `
                  -To          $mail_to   `
                  -Subject     $mail_subj `
                  -Body        $mail_body `
-                 -Attachments "$bkp_path_date\backup-${bkp_date}.log"
+                 -Attachments $bkp_log_local
