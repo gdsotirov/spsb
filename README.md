@@ -18,7 +18,7 @@ to provide some real host and user names and passwords.
 To setup the script for execution at specific time do the following:
 
 1. Go to Start Menu -> Run (or press Win Key + R).
-2. Type tasksched.msc and hit enter to open Task Scheduler.
+2. Type `taskched.msc` and hit enter to open Task Scheduler.
 3. Go to Action -> Create Task...
 4. Enter task name (e.g. Backup) and description (e.g. Backup files and folders
    from this computer to a network share) on tab General in the dialog and
@@ -34,7 +34,7 @@ To setup the script for execution at specific time do the following:
 To setup the script for execution at user log off do the following:
 
 1. Go to Start Menu -> Run (or press Win Key + R).
-2. Type gpedit.msc and hit enter to open Local Group Policy Editor.
+2. Type `gpedit.msc` and hit enter to open Local Group Policy Editor.
 3. Go to User configuration -> Windows Settings -> Scripts (Logon/Logoff).
 4. Click on Logoff on the right and select PowerShell Scripts tab in the dialog.
 5. Click on Add... button, then select the script.
@@ -42,7 +42,7 @@ To setup the script for execution at user log off do the following:
 To setup the script for execution at system shutdown do the following:
 
 1. Go to Start Menu -> Run (or press Win Key + R).
-2. Type gpedit.msc and hit enter to open Local Group Policy Editor.
+2. Type `gpedit.msc` and hit enter to open Local Group Policy Editor.
 3. Go to Computer configuration -> Windows Settings -> Scripts (Startup/Shutdown).
 4. Click on Shutdown on the right and select PowerShell Scripts tab in the dialog.
 5. Click on Add... button, then select the script.
