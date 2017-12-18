@@ -18,7 +18,7 @@ to provide some real host and user names and passwords.
 To setup the script for execution at specific time do the following:
 
 1. Go to Start Menu -> Run (or press Win Key + R).
-2. Type `taskched.msc` and hit enter to open Task Scheduler.
+2. Type `taskschd.msc` and hit enter to open Task Scheduler.
 3. Go to Action -> Create Task...
 4. Enter task name (e.g. Backup) and description (e.g. Backup files and folders
    from this computer to a network share) on tab General in the dialog and
