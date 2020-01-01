@@ -86,7 +86,7 @@ try {
 }
 catch {
   $res1 = 1
-  echo $_
+  Write-Output $_
 }
 Write-Output "Done ($res1)"
 Write-Output "Backing up ${bkp_src2}... "
@@ -97,7 +97,7 @@ try {
 catch {
   # TODO: Handle file in use error
   $res2 = 1
-  echo $_
+  Write-Output $_
 }
 Write-Output "Done ($res2)"
 #copy-Item  -Recurse $bkp_src1 -Destination $bkp_path_date\$bkp_src1
