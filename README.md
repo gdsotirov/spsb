@@ -1,5 +1,6 @@
-# spsb
-A simple PowerShell backup script
+# SPSB
+
+A **S**imple **P**ower**S**hell **B**ackup script.
 
 ## Abstract
 
