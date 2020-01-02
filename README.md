@@ -58,6 +58,7 @@ The script requires:
 
 ## Known issues
 
-The script is still a work in progress and it is quite rough currently. It
-should handle its errors and provide possibility for setup what is to be backed
-up in the form of a hash table.
+The script is a work in progress although working well for years already. A
+better error handling should be implemented. If the PC is shutdown more than
+once a day the backups archives are complemented, instead of overwritten or
+rotated.

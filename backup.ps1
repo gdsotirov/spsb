@@ -5,8 +5,10 @@
 $bkp_date = Get-Date -Format yyyy-MM-dd # for once a day
 $bkp_for_user = "OTHER" # for Logoff event
 $bkp_log_local = "$env:temp\$env:computername-backup-${bkp_date}.log"
-$bkp_src1 = "C:\A\Directory\To\Backup"
-$bkp_src2 = "D:\A\File\To\Backup.txt"
+$bkp_srcs = @{}
+$bkp_srcs['src1'] = "C:\A\Directory\To\Backup"
+$bkp_srcs['src2'] = "D:\A\File\To\Backup.txt"
+# Add more backup sources here
 
 # Backup server
 $bkp_host = "a_backup_host"
@@ -79,28 +81,18 @@ if ( !(Test-Path "$bkp_path_date" -PathType Container) ) {
   mkdir $bkp_path_date
 }
 
-Write-Output "Backing up ${bkp_src1}... "
-try {
-  ZipDir  "$bkp_path_date\Bkp1-$bkp_date.zip" $bkp_src1
-  $res1 = 0
+foreach ($bsrc in $bkp_srcs.Keys) {
+  Write-Output "Backing up '$bkp_srcs[$bsrc]'... "
+  try {
+    ZipDir  "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+    $res1 = 0
+  }
+  catch {
+    $res1 = 1
+    Write-Output $_
+  }
+  Write-Output "Done ($res1)"
 }
-catch {
-  $res1 = 1
-  Write-Output $_
-}
-Write-Output "Done ($res1)"
-Write-Output "Backing up ${bkp_src2}... "
-try {
-  ZipFile "$bkp_path_date\Bkp2-$bkp_date.zip" $bkp_src2
-  $res2 = 0
-}
-catch {
-  # TODO: Handle file in use error
-  $res2 = 1
-  Write-Output $_
-}
-Write-Output "Done ($res2)"
-#copy-Item  -Recurse $bkp_src1 -Destination $bkp_path_date\$bkp_src1
 
 ) 2>&1 | Out-File $bkp_log_local
 
