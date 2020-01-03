@@ -1,4 +1,4 @@
-# Simple PowerShell backup script
+# Simple PowerShell Backup script
 # Requires at least PowerShell 3.0 (for -Credential on network share)
 
 # Backup configuration
@@ -82,9 +82,15 @@ if ( !(Test-Path "$bkp_path_date" -PathType Container) ) {
 }
 
 foreach ($bsrc in $bkp_srcs.Keys) {
-  Write-Output "Backing up '$bkp_srcs[$bsrc]'... "
   try {
-    ZipDir  "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+    if ( Test-Path -Path $bkp_srcs[$bsrc] -PathType Container ) {
+      Write-Output "Backing up directory '$bkp_srcs[$bsrc]'... "
+      ZipDir  "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+    }
+    else {
+      Write-Output "Backing up file '$bkp_srcs[$bsrc]'... "
+      ZipFile "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+    }
     $res1 = 0
   }
   catch {
