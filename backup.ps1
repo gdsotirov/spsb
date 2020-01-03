@@ -9,7 +9,7 @@ $bkp_srcs = @{}
 $bkp_srcs['src1'] = "C:\A\Directory\To\Backup"
 $bkp_srcs['src2'] = "D:\A\File\To\Backup.txt"
 # Add more backup sources here
-Set-Variable max_rotations -option Constant -value 16
+Set-Variable MAX_ROTATIONS -Scope Script -option Constant -value 16
 
 # Backup server
 $bkp_host = "a_backup_host"
@@ -30,7 +30,7 @@ function RotateFile($filename)
   {
     $fnum = 0
     # rotate, but up to max number of rotations
-    while ( (Test-Path -Path ($filename + "." + $fnum)) -and ($fnum -lt $max_rotations) ) {
+    while ( (Test-Path -Path ($filename + "." + $fnum)) -and ($fnum -lt $MAX_ROTATIONS) ) {
       $fnum++
     }
 
