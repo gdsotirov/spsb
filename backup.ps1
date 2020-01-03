@@ -44,12 +44,12 @@ function ZipDir($zipfilename, $sourcedir)
 
 function LogEvent($Type, $Id, $Message) {
   if ( ![System.Diagnostics.EventLog]::SourceExists("Simple Backup Script") ) {
-    New-EventLog   –LogName Application –Source “Simple Backup Script”
+    New-EventLog -LogName Application -Source "Simple Backup Script"
   }
 
-  Write-EventLog –LogName Application –Source “Simple Backup Script” `
-                 –EntryType $Type –EventID $id `
-                 –Message $Message
+  Write-EventLog -LogName Application -Source "Simple Backup Script" `
+                 -EntryType $Type -EventID $id `
+                 -Message $Message
 }
 
 function LogInfoEvent($Id, $Message) {
