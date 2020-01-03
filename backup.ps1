@@ -111,6 +111,7 @@ if ( !(Test-Path "$bkp_path_date" -PathType Container) ) {
   mkdir $bkp_path_date
 }
 
+$res_total = 0
 foreach ($bsrc in $bkp_srcs.Keys) {
   try {
     if ( Test-Path -Path $bkp_srcs[$bsrc] -PathType Container ) {
@@ -121,13 +122,14 @@ foreach ($bsrc in $bkp_srcs.Keys) {
       Write-Output "Backing up file '$($bkp_srcs[$bsrc])'... "
       ZipFile "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
     }
-    $res1 = 0
+    $res = 0
   }
   catch {
-    $res1 = 1
+    $res = 1
     Write-Output $_
   }
-  Write-Output "Done ($res1)"
+  $res_total += $res
+  Write-Output "Done ($res)"
 }
 
 ) 2>&1 | Out-File $bkp_log_local
@@ -139,7 +141,7 @@ Remove-PSDrive "BKP"
 $end_time = Get-Date
 $used_time = $end_time - $start_time
 
-if ($res1 -eq 0 -and $res2 -eq 0) {
+if ($res_total -eq 0) {
   $mail_subj = $mail_subj + " [OK]"
   $mail_msg = "Backup of $env:computername on $bkp_date has completed successfully in $($used_time.TotalSeconds) seconds."
 
