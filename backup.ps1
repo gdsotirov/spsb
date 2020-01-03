@@ -9,6 +9,7 @@ $bkp_srcs = @{}
 $bkp_srcs['src1'] = "C:\A\Directory\To\Backup"
 $bkp_srcs['src2'] = "D:\A\File\To\Backup.txt"
 # Add more backup sources here
+Set-Variable max_rotations -option Constant -value 16
 
 # Backup server
 $bkp_host = "a_backup_host"
@@ -23,8 +24,34 @@ $mail_from = "user@mail.host"
 $mail_to   = "admin@other_mail.host"
 $mail_subj = "Backup report from $env:computername on $bkp_date"
 
-function ZipFile($zipfilename, $file)
+function RotateFile($filename)
 {
+  if ( Test-Path -Path $filename ) # if file exits
+  {
+    $fnum = 0
+    # rotate, but up to max number of rotations
+    while ( (Test-Path -Path ($filename + "." + $fnum)) -and ($fnum -lt $max_rotations) ) {
+      $fnum++
+    }
+
+    # test again and move
+    if ( !(Test-Path -Path ($filename + "." + $fnum)) ) {
+      Move-Item -Path $filename -Destination ($filename + "." + $fnum)
+    }
+    else { # or print error
+      Write-Output "ERROR: Reached maximum number of rotations ($max_rotations) for '$filename'."
+      return 1
+    }
+  }
+
+  return 0
+}
+
+function ZipFile($zipfilename, $file) {
+  if ( RotateFile($zipfilename) ) {
+    return 1;
+  }
+
   Add-Type -Assembly System.IO.Compression
   Add-Type -Assembly System.IO.Compression.FileSystem
 
@@ -33,8 +60,11 @@ function ZipFile($zipfilename, $file)
   $ZipFile.Dispose()
 }
 
-function ZipDir($zipfilename, $sourcedir)
-{
+function ZipDir($zipfilename, $sourcedir) {
+  if ( RotateFile($zipfilename) ) {
+    return 1;
+  }
+
   Add-Type -Assembly System.IO.Compression
   Add-Type -Assembly System.IO.Compression.FileSystem
 
