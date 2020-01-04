@@ -38,9 +38,8 @@ function RotateFile($filename)
     if ( !(Test-Path -Path ($filename + "." + $fnum)) ) {
       Move-Item -Path $filename -Destination ($filename + "." + $fnum)
     }
-    else { # or print error
-      Write-Output "ERROR: Reached maximum number of rotations ($max_rotations) for '$filename'."
-      return 1
+    else { # or throw error
+      Throw "ERROR: Reached maximum number of rotations ($max_rotations) for '$filename'."
     }
   }
 
@@ -48,8 +47,11 @@ function RotateFile($filename)
 }
 
 function ZipFile($zipfilename, $file) {
-  if ( RotateFile($zipfilename) ) {
-    return 1;
+  try {
+    RotateFile($zipfilename)
+  }
+  catch {
+    Throw $_
   }
 
   Add-Type -Assembly System.IO.Compression
@@ -61,8 +63,11 @@ function ZipFile($zipfilename, $file) {
 }
 
 function ZipDir($zipfilename, $sourcedir) {
-  if ( RotateFile($zipfilename) ) {
-    return 1;
+  try {
+    RotateFile($zipfilename)
+  }
+  catch {
+    Throw $_
   }
 
   Add-Type -Assembly System.IO.Compression
@@ -93,7 +98,7 @@ function LogErrEvent($Id, $Message) {
 $start_time = Get-Date
 
 if ( $env:USERNAME -notlike $bkp_for_user ) {
-  Write-host "Expecting user '$bkp_for_user', but script ran as '$env:USERNAME'. Exiting."
+  Write-Host "Expecting user '$bkp_for_user', but script ran as '$env:USERNAME'. Exiting."
   exit
 }
 
@@ -134,7 +139,13 @@ foreach ($bsrc in $bkp_srcs.Keys) {
 
 ) 2>&1 | Out-File $bkp_log_local
 
-Copy-Item $bkp_log_local "$bkp_path_date\backup-$bkp_date.log"
+try {
+  RotateFile("$bkp_path_date\backup-$bkp_date.log")
+  Copy-Item $bkp_log_local "$bkp_path_date\backup-$bkp_date.log"
+}
+catch {
+  Write-Output $_ | Out-File $bkp_log_local -Append
+}
 
 Remove-PSDrive "BKP"
 
