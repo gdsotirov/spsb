@@ -30,7 +30,7 @@ function RotateFile($filename)
   {
     $fnum = 0
     # rotate, but up to max number of rotations
-    while ( (Test-Path -Path ($filename + "." + $fnum)) -and ($fnum -lt $MAX_ROTATIONS) ) {
+    while ( (Test-Path -Path ($filename + "." + $fnum)) -and ($fnum -lt ($MAX_ROTATIONS - 1) ) ) {
       $fnum++
     }
 
@@ -99,6 +99,14 @@ $start_time = Get-Date
 
 if ( $env:USERNAME -notlike $bkp_for_user ) {
   Write-Host "Expecting user '$bkp_for_user', but script ran as '$env:USERNAME'. Exiting."
+  exit
+}
+
+try {
+  RotateFile($bkp_log_local)
+}
+catch {
+  Write-Host "Too many rotations. Exiting."
   exit
 }
 
