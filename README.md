@@ -1,13 +1,14 @@
 # SPSB
 
-A **S**imple **P**ower**S**hell **B**ackup script.
+A **S**imple **P**ower**S**hell **B**ackup script for creation of timestamped
+backups of files and folders as Zip archives.
 
 ## Abstract
 
-The script aims at backing up a whole folder or a single file as archive or
-synchronizing the contents of a directory from a Windows machine to a network
-share (Samba). It's intended to be run regularly as a scheduled task or at
-system events like user log off or system shutdown.
+The purpose of the script is to back up a whole folder or a single file from
+a Windows machine to a network share (Samba) as timestamped Zip archives.
+It's intended to be run regularly as a scheduled task or at system events
+like user log off or system shutdown.
 
 ## Configuration
 
@@ -58,7 +59,18 @@ The script requires:
 
 ## Known issues
 
-The script is a work in progress although working well for years already. A
-better error handling should be implemented. If the PC is shutdown more than
-once a day the backups archives are complemented, instead of overwritten or
-rotated.
+The script is a work in progress although working well on several PCs for
+years already. These are the currently known issues:
+
+  * if file is being used by another process the backup fails with error
+    "_The process cannot access the file 'file' because it is being used by
+    another process._", which could be avoided if the script is executed at
+    user log off or system shutdown events, instead of scheduled;
+  * if the network share is already accessed with different credentials then
+    backup drive creation would fail, because in Windows "_by design_" and
+    for security reasons "_one server (uniquely identified by the given name)
+    can only have one user authenticated to it at a given time_" (see
+    [KB938120](http://support.microsoft.com/kb/938120) for explanation and
+    workarounds);
+  * backup log file is not rotated both locally and on remote share.
+
