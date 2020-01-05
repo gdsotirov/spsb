@@ -1,5 +1,15 @@
-# Simple PowerShell Backup script
-# Requires at least PowerShell 3.0 (for -Credential on network share)
+<#
+  .SYNOPSIS
+    A Simple PowerShell Backup script for creation of timestamped backups
+    of files and folders as Zip archives.
+  .DESCRIPTION
+    The purpose of the script is to back up a whole folder or a single file
+    from a Windows machine to a network share (Samba) as timestamped Zip
+    archives. It's intended to be run regularly as a scheduled task or at
+    system events like user log off or system shutdown.
+  .NOTES
+    Requires at least PowerShell 3.0 (for -Credential on network share).
+#>
 
 # Backup configuration
 $bkp_date = Get-Date -Format yyyy-MM-dd # for once a day
@@ -24,6 +34,16 @@ $mail_from = "user@mail.host"
 $mail_to   = "admin@other_mail.host"
 $mail_subj = "Backup report from $env:computername on $bkp_date"
 
+<#
+  .SYNOPSIS
+    Create versions (rotations) of the file provided as argument.
+  .DESCRIPTION
+    If the file exists, then the function creates a copy of it suffixed
+    with number, but only op to MAX_ROTATIONS. If the limit is reached
+    an error is thrown.
+  .PARAMETER filename
+    Full path to the file.
+#>
 function RotateFile($filename)
 {
   if ( Test-Path -Path $filename ) # if file exits
@@ -44,6 +64,15 @@ function RotateFile($filename)
   }
 }
 
+<#
+  .SYNOPSIS
+    Creates the Zip archive provided as first argument of the file provided
+    as second argument.
+  .PARAMETER zipfilename
+    Full path to the Zip archive.
+  .PARAMETER file
+    Full path to the file to archive.
+#>
 function ZipFile($zipfilename, $file) {
   try {
     RotateFile($zipfilename)
@@ -60,6 +89,15 @@ function ZipFile($zipfilename, $file) {
   $ZipFile.Dispose()
 }
 
+<#
+  .SYNOPSIS
+    Creates the Zip archive provided as first argument of the directory
+    provided as second argument.
+  .PARAMETER zipfilename
+    Full path to the Zip archive.
+  .PARAMETER sourcedir
+    Full path to the directory to archive.
+#>
 function ZipDir($zipfilename, $sourcedir) {
   try {
     RotateFile($zipfilename)
@@ -75,6 +113,17 @@ function ZipDir($zipfilename, $sourcedir) {
   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir, $zipfilename, $compressionLevel, $false)
 }
 
+<#
+  .SYNOPSIS
+    Writes an event in the Event Log with the type, id and message provided
+    as arguments.
+  .PARAMETER Type
+    Entry type (e.g. Error or Information).
+  .PARAMETER Id
+    Event identifier.
+  .PARAMETER Message
+    Free text message for the event.
+#>
 function LogEvent($Type, $Id, $Message) {
   if ( ![System.Diagnostics.EventLog]::SourceExists("Simple Backup Script") ) {
     New-EventLog -LogName Application -Source "Simple Backup Script"
