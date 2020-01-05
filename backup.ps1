@@ -42,8 +42,6 @@ function RotateFile($filename)
       Throw "ERROR: Reached maximum number of rotations ($max_rotations) for '$filename'."
     }
   }
-
-  return 0
 }
 
 function ZipFile($zipfilename, $file) {
