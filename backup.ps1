@@ -176,11 +176,13 @@ foreach ($bsrc in $bkp_srcs.Keys) {
   try {
     if ( Test-Path -Path $bkp_srcs[$bsrc] -PathType Container ) {
       Write-Output "Backing up directory '$($bkp_srcs[$bsrc])'... "
-      ZipDir  "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+      ZipDir  "$env:temp\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+      Copy-Item "$env:temp\$bsrc-$bkp_date.zip" "$bkp_path_date\$bsrc-$bkp_date.zip"
     }
     else {
       Write-Output "Backing up file '$($bkp_srcs[$bsrc])'... "
-      ZipFile "$bkp_path_date\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+      ZipFile "$env:temp\$bsrc-$bkp_date.zip" $bkp_srcs[$bsrc]
+      Copy-Item "$env:temp\$bsrc-$bkp_date.zip" "$bkp_path_date\$bsrc-$bkp_date.zip"
     }
     $res = 0
   }
