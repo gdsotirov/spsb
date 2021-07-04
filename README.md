@@ -62,6 +62,8 @@ The script requires:
 The script is a work in progress although working well on several PCs for
 years already. These are the currently known issues:
 
+  * the script would not run unless you enable a less restrictive execution
+    policy (see [About Execution Policies](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.1));
   * if file is being used by another process the backup fails with error
     "_The process cannot access the file 'file' because it is being used by
     another process._", which could be avoided if the script is executed at
