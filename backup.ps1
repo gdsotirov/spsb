@@ -128,6 +128,7 @@ function ZipDir($zipfilename, $sourcedir) {
 #>
 function LogEvent($Type, $Id, $Message) {
   if ( ![System.Diagnostics.EventLog]::SourceExists("Simple Backup Script") ) {
+    # TODO: This requires elevated user rights. How?
     New-EventLog -LogName Application -Source "Simple Backup Script"
   }
 
