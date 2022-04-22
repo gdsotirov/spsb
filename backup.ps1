@@ -13,7 +13,7 @@
 
 # Backup configuration
 $bkp_date = Get-Date -Format yyyy-MM-dd # for once a day
-$bkp_for_user = "OTHER" # for Logoff event
+#$bkp_for_user = "OTHER" # for Logoff event, uncomment if needed
 $bkp_log_local = "$env:temp\$env:computername-backup-${bkp_date}.log"
 $keep_local_bkps = $true
 $bkp_path_local = "$env:temp"
@@ -147,9 +147,11 @@ function LogErrEvent($Id, $Message) {
 
 $start_time = Get-Date
 
-if ( $env:USERNAME -notlike $bkp_for_user ) {
-  Write-Host "Expecting user '$bkp_for_user', but script ran as '$env:USERNAME'. Exiting."
-  exit
+if ( $bkp_for_user -ne $null ) {
+  if ( $env:USERNAME -notlike $bkp_for_user ) {
+    Write-Host "Expecting user '$bkp_for_user', but script ran as '$env:USERNAME'. Exiting."
+    exit
+  }
 }
 
 try {
