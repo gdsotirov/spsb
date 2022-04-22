@@ -147,7 +147,7 @@ function LogErrEvent($Id, $Message) {
 
 $start_time = Get-Date
 
-if ( $bkp_for_user -ne $null ) {
+if ( $null -ne $bkp_for_user ) {
   if ( $env:USERNAME -notlike $bkp_for_user ) {
     Write-Host "Expecting user '$bkp_for_user', but script ran as '$env:USERNAME'. Exiting."
     exit
