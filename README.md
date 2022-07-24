@@ -73,5 +73,13 @@ years already. These are the currently known issues:
     for security reasons "_one server (uniquely identified by the given name)
     can only have one user authenticated to it at a given time_" (see
     [KB938120](http://support.microsoft.com/kb/938120) for explanation and
-    workarounds).
+    workarounds);
+  * when archiving a single file with size over 300 MB the script may fail
+    with the following error:
+    ```
+    Exception calling "CreateEntryFromFile" with "3" argument(s): "Exception of type 'System.OutOfMemoryException' was thrown."
+    ```
+    It was found on system running Windows 10 (32 bit) with just 4 GB RAM. On
+    the same system archiving the same file with **Send to → Compressed
+    (zipped) folder** works just fine. No known workaround at present.
 
